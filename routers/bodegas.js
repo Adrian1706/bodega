@@ -21,7 +21,20 @@ Bodegas.get("/:id?", (req,res)=>{
         })
 });
 
+/** -------------------- BODEGAS METODO POST --------------------- */
 
+Bodegas.post("/", (req, res)=>{
+    conexion.query(
+        `INSERT INTO bodegas SET ?`,
+        req.body,
+        (err,data,fils)=>{
+            console.log(err)
+            console.table(data);
+            console.log(data);
+            res.status(200).send(data);
+        }
+    )
+})
 
 /** -------------------- BODEGAS EXPORT --------------------- */
 
