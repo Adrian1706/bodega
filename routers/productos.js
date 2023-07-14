@@ -8,17 +8,58 @@ dotenv.config();
 /** -------------------- PRODUCTOS METODO GET --------------------- */
 
 Productos.get("/:id?",(req,res)=>{
+    let sql = (req.params.id)
+    ?[`SELECT * FROM productos WHERE id=${req.params.id}`]
+    :[`SELECT * FROM productos ORDER BY nombre`]
+    conexion.query(...sql,
+     (err,data,fils)=>{
+         console.log(err);
+         console.table(data);
+         res.send(data);
+     }
+    )
 
-    conexion.query(`SELECT p.id,p.nombre,SUM(i.cantidad) AS Total
-    FROM productos p
-    INNER JOIN inventarios i ON p.id = i.id_producto
-    GROUP BY p.id
-    ORDER BY Total DESC;`,
-    (err, data, fils)=>{
-        console.log(err);
+ })
+
+/** -------------------- PRODUCTOS METODO POST --------------------- */
+
+Productos.post('/', (req, res) => {
+    let insertId;  
+
+    conexion.query(
+      `INSERT INTO productos SET ?`,
+      req.body,
+      (err, data, fils) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send('Error al insertar el producto en la base de datos');
+          return;
+        }
+        insertId = data.insertId;
         console.table(data);
-        res.status(200).send(data)
-    })
-})
+   
+        conexion.query(
+          `INSERT INTO inventarios SET ?`,
+          {
+            id_bodega: 11,
+            id_producto: insertId,
+            cantidad: 2,
+            created_by: req.body.created_by,
+            update_by: req.body.created_by,
+          },
+          (err, data, fils) => {
+            if (err) {
+              console.log(err);
+              res.status(500).send('Error al insertar el inventario en la base de datos');
+              return;
+            }
+            console.table(data);
+            res.status(200).send(data);
+          }
+        );
+      }
+    );
+  });
+
 
 export default Productos;
